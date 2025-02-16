@@ -23,14 +23,36 @@ jobs:
 
       - name: Build with Maven
         run: mvn -f demo/pom.xml clean package
-        
+
       - name: Build Docker Image
         run: docker build -t thanhtuanh/dtn-devops:latest .
 
       - name: Push to Docker Hub
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
         run: |
-          echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+          echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
           docker push thanhtuanh/dtn-devops:latest
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure Kubernetes
+        run: |
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
       - name: Deploy to Kubernetes
-        run: kubectl apply -f deployment.yaml
+        run: |
+          kubectl apply -f deployment.yaml
+          kubectl rollout status deployment/dtn-devops
