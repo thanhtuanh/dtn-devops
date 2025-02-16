@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dtn-devops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dtn-devops
+  template:
+    metadata:
+      labels:
+        app: dtn-devops
+    spec:
+      containers:
+      - name: dtn-devops
+        image: thanhtuanh/dtn-devops:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dtn-devops-service
+spec:
+  selector:
+    app: dtn-devops
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
