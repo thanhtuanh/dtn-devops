@@ -25,7 +25,7 @@ jobs:
         run: mvn -f demo/pom.xml clean package
 
       - name: Build Docker Image
-        run: docker build -t thanhtuanh/dtn-devops:latest .
+        run: docker build -t thanhtuanh/dtn-devops:latest -f demo/Dockerfile .
 
       - name: Push to Docker Hub
         env:
